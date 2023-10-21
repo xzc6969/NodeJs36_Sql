@@ -1,0 +1,157 @@
+CREATE DATABASE bai1;
+
+use bai1;
+
+CREATE TABLE restaurant(
+	res_id int PRIMARY KEY auto_increment,
+	res_name VARCHAR(50),
+	image VARCHAR(255),
+	decs VARCHAR(300)
+)
+CREATE TABLE users(
+	user_id int PRIMARY KEY auto_increment,
+	full_name VARCHAR(50),
+	email VARCHAR(50),
+	password VARCHAR(20)
+)
+
+CREATE TABLE like_res(
+	user_id int,
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+	res_id int,
+	FOREIGN KEY (res_id) REFERENCES restaurant(res_id),
+	date_like date
+)
+CREATE TABLE rate_res(
+	user_id int,
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+	res_id int,
+	FOREIGN KEY (res_id) REFERENCES restaurant(res_id),
+	amount INT,
+	date_rate date
+)
+CREATE TABLE food(
+	food_id int PRIMARY KEY auto_increment,
+	food_name VARCHAR(50),
+	image VARCHAR(255),
+	price FLOAT,
+	decs VARCHAR(300),
+	type_id INT,
+	FOREIGN KEY (type_id) REFERENCES food_type(type_id)
+)
+CREATE TABLE food_type(
+	type_id int PRIMARY KEY auto_increment,
+	type_name VARCHAR(50)
+)
+CREATE TABLE orders(
+	user_id int,
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+	food_id int,
+	FOREIGN KEY (food_id) REFERENCES food(food_id),
+	amount INT,
+	code VARCHAR(100),
+	arr_sub_id VARCHAR(100)
+)
+CREATE TABLE sub_food(
+	sub_id INT PRIMARY KEY auto_increment,
+	sub_name VARCHAR(50),
+	sub_price FLOAT,
+	food_id int,
+	FOREIGN KEY (food_id) REFERENCES food(food_id)
+)
+INSERT INTO users (full_name, email, password)
+VALUES
+('Nguyễn Văn A', 'nva@gmail.com', '123'),
+('Nguyễn Văn B', 'nvb@gmail.com', '123'),
+('Nguyễn Văn C', 'nvc@gmail.com', '123'),
+('Nguyễn Văn D', 'nvd@gmail.com', '123'),
+('Nguyễn Văn E', 'nve@gmail.com', '123'),
+('Nguyễn Văn F', 'nvf@gmail.com', '123'),
+('Nguyễn Văn G', 'nvg@gmail.com', '123'),
+('Nguyễn Văn H', 'nvh@gmail.com', '123'),
+('Nguyễn Văn J', 'nvj@gmail.com', '123');
+
+INSERT INTO restaurant (res_name, image, decs)
+VALUES
+('Nhà A', 'A.jpg', 'A'),
+('Nhà B', 'B.jpg', 'B'),
+('Nhà C', 'C.jpg', 'C'),
+('Nhà D', 'D.jpg', 'D');
+INSERT INTO like_res (user_id, res_id, date_like)
+VALUES
+(1, 1, '2023-10-21'),
+(5, 3, '2023-10-22'),
+(7, 4, '2023-10-25'),
+(1, 3, '2023-10-26'),
+(6, 1, '2023-10-26'),
+(2, 1, '2023-10-26'),
+(4, 1, '2023-10-26'),
+(4, 2, '2023-10-26'),
+(2, 2, '2023-10-26'),
+(1, 3, '2023-10-26'),
+(2, 4, '2023-10-26'),
+(3, 4, '2023-10-26'),
+(4, 4, '2023-10-26'),
+(7, 4, '2023-10-26'),
+(6, 4, '2023-10-26');
+INSERT INTO rate_res (user_id, res_id, amount, date_rate)
+VALUES
+(1, 1,9, '2023-10-21'),
+(1, 3,8, '2023-10-22'),
+(2, 4,9, '2023-10-25'),
+(4, 1,10, '2023-10-26');
+INSERT INTO food_type (type_name)
+VALUES
+('Appetizer'),
+('Main Course'),
+('Dessert'),
+('Beverage');
+INSERT INTO food (food_name, image, price, decs, type_id)
+VALUES
+('Caesar Salad', 'caesar.jpg', 8.99, 'Fresh lettuce with Caesar dressing', 1),
+('Spaghetti Bolognese', 'spaghetti.jpg', 12.99, 'Pasta with rich meat sauce', 2),
+('Chocolate Cake', 'chocolate_cake.jpg', 6.99, 'Decadent chocolate cake', 3),
+('Soda', 'soda.jpg', 2.49, 'Various soda flavors', 4);
+INSERT INTO sub_food (sub_name, sub_price, food_id)
+VALUES
+('Extra Cheese', 1.50, 2),
+('Garlic Bread', 2.99, 2),
+('Whipped Cream', 1.00, 3),
+('Ice Cream', 2.50, 3);
+INSERT INTO orders (user_id, food_id, amount, code, arr_sub_id)
+VALUES
+(1, 1, 2, 'A12345678', 'Không có'),
+(2, 3, 1, 'B12345678', 'Không có'),
+(1, 4, 3, 'C12345678', 'Không có'),
+(4, 1, 2, 'D12345678', 'Không có'),
+(2, 2, 1, 'B12345678', 'Không có'),
+(2, 1, 1, 'B12345678', 'Không có');
+
+SELECT user_id, COUNT(res_id) AS total_likes
+FROM like_res
+GROUP BY user_id
+ORDER BY total_likes DESC
+LIMIT 5;
+
+SELECT res_id, COUNT(user_id) AS res_like
+FROM like_res
+GROUP BY res_id
+ORDER BY res_like DESC
+LIMIT 2;
+
+SELECT orders.user_id, users.full_name, count(food_id) AS so_lan_order
+FROM users JOIN orders on users.user_id = orders.user_id
+GROUP BY user_id, full_name
+ORDER by so_lan_order DESC
+limit 1;
+
+SELECT user_id, full_name
+FROM users
+WHERE user_id NOT IN (
+    SELECT DISTINCT user_id FROM orders
+) AND user_id NOT IN (
+    SELECT DISTINCT user_id FROM like_res
+) AND user_id NOT IN (
+    SELECT DISTINCT user_id FROM rate_res
+);
+
